@@ -1,11 +1,11 @@
 package com.example.ejemplohiloskotlin
 
+import android.os.AsyncTask
 import android.os.Bundle
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 
-
-// Segundo Hilo con runOnUiThread
+// Asyntask
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -14,19 +14,29 @@ class MainActivity : ComponentActivity() {
 
         val tvCrono: TextView = findViewById(R.id.tvCrono)
 
-        Thread {
-            var remaining = 10
+        val asyncTask = MyAsyncTask(tvCrono)
+        asyncTask.execute(10)
+    }
+
+    private class MyAsyncTask(private val textView: TextView) :
+        AsyncTask<Int, Int, String>() {
+
+        override fun doInBackground(vararg params: Int?): String {
+            var remaining = params[0] ?: 0
             while (remaining > 0) {
-                runOnUiThread {
-                    tvCrono.text = remaining.toString()
-                }
+                publishProgress(remaining)
                 Thread.sleep(1_000)
                 remaining--
             }
+            return "Terminado"
+        }
 
-            tvCrono.post {
-                tvCrono.text = "Terminado"
-            }
-        }.start()
+        override fun onProgressUpdate(vararg values: Int?) {
+            textView.text = values[0].toString()
+        }
+
+        override fun onPostExecute(result: String?) {
+            textView.text = result
+        }
     }
 }
